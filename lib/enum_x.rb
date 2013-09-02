@@ -1,3 +1,7 @@
+require 'yaml'
+require 'json'
+require 'i18n'
+
 # Utility class representing an enumeration of options to choose from. This can be used
 # in models to make a field have a certain number of allowed options.
 #
@@ -80,12 +84,12 @@ class EnumX
       # Defines a new enum with the given values.
       # @see EnumX#initialize
       def define(name, values)
-        registry[name] = new(name, values)
+        registry[name.to_s] = new(name, values)
       end
 
       # Undefines an enum.
       def undefine(name)
-        registry.delete name
+        registry.delete name.to_s
       end
 
       # Retrieves an enum by name.
@@ -150,7 +154,7 @@ class EnumX
             case loader
             when Proc
               loader.call(path, file_type)
-            when Has[:load_enums_from]
+            when ->(l){ l.respond_to?(:load_enums_from) }
               loader.load_enums_from(path, file_type)
             else
               case file_type
@@ -210,7 +214,7 @@ class EnumX
     include Enumerable
 
     # Create delegate methods for all of Enumerable's own methods.
-    Enumerable.instance_methods.each do |method|
+    (Enumerable.instance_methods + [ :empty?, :present?, :blank? ]).each do |method|
       class_eval <<-RUBY, __FILE__, __LINE__+1
         def #{method}(*args, &block)
           values.__send__ :#{method}, *args, &block
@@ -278,9 +282,9 @@ class EnumX
     # Add a new value to the enum values list
     def add_value!(value)
       value = case value
-                when Value then value.dup(self)
-                else Value.new(self, value)
-              end
+        when Value then value.dup(self)
+        else Value.new(self, value)
+      end
       @values[value.value] = value
     end
 

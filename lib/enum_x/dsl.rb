@@ -145,17 +145,21 @@ class EnumX
               if validation_options[:allow_blank] != false
                 class_eval <<-RUBY, __FILE__, __LINE__+1
                   validates_each :#{attribute} do |record, attribute, value|
-                    if not_included_value = Array.wrap(value).find{ |v| !enum.values.include?(v) }
-                      record.errors.add attribute, :inclusion, :value => not_included_value
+                    if value.present?
+                      value = [ value ] unless value.is_a?(Enumerable)
+                      if not_included_value = value.find{ |v| !enum.values.include?(v) }
+                        record.errors.add attribute, :inclusion, :value => not_included_value
+                      end
                     end
                   end
                 RUBY
               else
                 class_eval <<-RUBY, __FILE__, __LINE__+1
                   validates_each :#{attribute} do |record, attribute, value|
+                    value = [ value ] unless value.is_a?(Enumerable) || value.nil?
                     if value.blank?
                       record.errors.add attribute, :blank
-                    elsif not_included_value = Array.wrap(value).find{ |v| !enum.values.include?(v) }
+                    elsif not_included_value = value.find{ |v| !enum.values.include?(v) }
                       record.errors.add attribute, :inclusion, :value => not_included_value
                     end
                   end
@@ -166,7 +170,7 @@ class EnumX
 
             # Serialize the value if this is an ActiveRecord class AND if the database actually contains
             # this column.
-            if self < ActiveRecord::Base && self.column_names.include?(attribute.to_s)
+            if defined?(ActiveRecord) && self < ActiveRecord::Base && self.column_names.include?(attribute.to_s)
               serialize attribute, FlagsSerializer.new(enum)
             end
 
@@ -188,12 +192,15 @@ class EnumX
             # Validation
             if validation_options[:validation] != false
               # Provide validations.
-              validates_inclusion_of attribute, validation_options.merge(:in => enum.values).reverse_merge(:allow_blank => true)
+              validation_options = validation_options.merge(:in => enum.values)
+              validation_options[:allow_blank] = true unless validation_options.key?(:allow_blank)
+
+              validates_inclusion_of attribute, validation_options
             end
 
             # Serialize the value if this is an ActiveRecord class AND if the database actually contains
             # this column.
-            if self < ActiveRecord::Base && self.column_names.include?(attribute.to_s)
+            if defined?(ActiveRecord) && self < ActiveRecord::Base && self.column_names.include?(attribute.to_s)
               serialize attribute, SingleSerializer.new(enum)
             end
 

@@ -11,7 +11,7 @@ require 'rspec/autorun'
 RSpec.configure do |config|
 
   config.mock_with :rspec do |config|
-    config.syntax = [ :should, :expect ]
+    config.syntax = :expect
   end
 
 end

@@ -120,7 +120,12 @@ class EnumX
     # I18n
 
       def translate(options = {})
-        I18n.translate value, options.merge(:scope => @enum.i18n_scope, :default => to_s.humanize.downcase)
+        default_value = if defined?(ActiveSupport)
+          ActiveSupport::Inflector.humanize(to_s).downcase
+        else
+          to_s
+        end
+        I18n.translate value, options.merge(:scope => @enum.i18n_scope, :default => default_value)
       end
       def translate!(options = {})
         I18n.translate value, options.merge(:scope => @enum.i18n_scope, :raise => true)
@@ -134,7 +139,7 @@ class EnumX
         value == other.to_s
       end
 
-      def eql(other)
+      def eql?(other)
         return false if other.nil?
         other.is_a?(EnumX::Value) && other.enum == enum && other.value == value
       end

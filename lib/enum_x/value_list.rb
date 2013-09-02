@@ -8,7 +8,8 @@ class EnumX
 
       def initialize(enum, values)
         @enum = enum
-        @values = Array.wrap(values).map { |value| @enum[value] || value }
+        values = [ values ] unless values.is_a?(Enumerable)
+        @values = values.map { |value| @enum[value] || value }
       end
 
     ######
@@ -37,7 +38,7 @@ class EnumX
       include Enumerable
 
       # Create delegate methods for all of Enumerable's own methods.
-      Enumerable.instance_methods.each do |method|
+      (Enumerable.instance_methods + [ :empty?, :present?, :blank? ]).each do |method|
         class_eval <<-RUBY, __FILE__, __LINE__+1
           def #{method}(*args, &block)
             values.__send__ :#{method}, *args, &block
