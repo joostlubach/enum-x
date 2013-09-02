@@ -1,4 +1,4 @@
-class Enum
+class EnumX
 
   # A list of multiple enum values.
   class ValueList

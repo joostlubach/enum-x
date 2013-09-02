@@ -1,4 +1,4 @@
-class Enum
+class EnumX
 
   # Mixin for any ActiveRecord or ActiveModel object to support enums.
   #
@@ -366,7 +366,7 @@ class Enum
         def load(text)
           Enum::ValueList.new(@enum, text.to_s.split('|').reject(&:blank?))
         end
-        
+
         def dump(list)
           # This is the case for using the values from changes and the list is allready a string
           list = load(list).values unless list.is_a?(Enum::ValueList)

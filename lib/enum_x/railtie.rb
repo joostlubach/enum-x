@@ -1,6 +1,6 @@
 require File.expand_path('..', __FILE__)
 
-class Enum
+class EnumX
   class Railtie < Rails::Railtie
 
     config.enum = ActiveSupport::OrderedOptions.new

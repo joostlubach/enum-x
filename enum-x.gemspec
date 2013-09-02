@@ -1,15 +1,15 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'enum/version'
+require 'enum_x/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "enum"
-  spec.version       = Enum::VERSION
+  spec.name          = "enum-x"
+  spec.version       = EnumX::VERSION
   spec.authors       = ["Joost Lubach"]
   spec.email         = ["joost@yoazt.com"]
-  spec.description   = %q[ Allows a finite set of options for a field. ]
-  spec.summary       = %q[ Allows a finite set of options for a field. ]
+  spec.description   = %q[Allows a finite set of values for any attribute.]
+  spec.summary       = %q[Allows a finite set of values for any attribute.]
   spec.homepage      = ""
   spec.license       = "MIT"
 

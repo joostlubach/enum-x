@@ -1,4 +1,4 @@
-class Enum
+class EnumX
 
   # One enum value. Each value has a name and may contain any format-specific values.
   class Value

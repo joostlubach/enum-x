@@ -34,12 +34,11 @@
 #   Enum.statuses[:sent].symbol == :sent
 #   Enum.statuses[:sent].to_legacy == 'sent'
 #   # => because no explicit value for the 'legacy' format was specified
-class Enum
-  extend ActiveSupport::Autoload
+class EnumX
 
-  autoload :DSL
-  autoload :Value
-  autoload :ValueList
+  autoload :DSL, 'enum_x/dsl'
+  autoload :Value, 'enum_x/value'
+  autoload :ValueList, 'enum_x/value_list'
 
   ######
   # Enum retrieval
@@ -96,9 +95,9 @@ class Enum
       #     end
       #   end
       attr_accessor :loader
-  
+
       private
-  
+
         # @!attribute [r] registry
         # @return [Hash] All defined enums.
         def registry
@@ -117,7 +116,7 @@ class Enum
             raise NameError, "enum #{method} not found"
           end
         end
-      
+
         # Loads enums from the defined load paths.
         def load_enums
           load_paths.each do |path|
@@ -152,7 +151,7 @@ class Enum
             define name, values
           end
         end
-  
+
     end
 
   ######
@@ -275,9 +274,9 @@ class Enum
       end
 
       alias :triple_equals_without_enums :===
-      alias :=== :triple_equals_with_enums 
+      alias :=== :triple_equals_with_enums
       alias :double_equals_without_enums :==
-      alias :== :double_equals_with_enums 
+      alias :== :double_equals_with_enums
     end
 
     String.class_eval do
@@ -299,9 +298,9 @@ class Enum
       end
 
       alias :triple_equals_without_enums :===
-      alias :=== :triple_equals_with_enums 
+      alias :=== :triple_equals_with_enums
       alias :double_equals_without_enums :==
-      alias :== :double_equals_with_enums 
+      alias :== :double_equals_with_enums
     end
 
   private
