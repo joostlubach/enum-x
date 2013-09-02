@@ -26,13 +26,24 @@ class EnumX
       # Obtains an array version of the enum.
       alias :to_ary :values
 
-      # Converts the enum to an array of {Enum::Value}s.
+      # Converts the enum to an array of {EnumX::Value}s.
       alias :to_a :values
 
-      delegate :to_s, :to => :values
+      # Creates a string representation of the values.
+      def to_s
+        values.map(&:to_s).join(', ')
+      end
 
       include Enumerable
-      delegate *Array.instance_methods - Object.instance_methods, :to => :values
+
+      # Create delegate methods for all of Enumerable's own methods.
+      Enumerable.instance_methods.each do |method|
+        class_eval <<-RUBY, __FILE__, __LINE__+1
+          def #{method}(*args, &block)
+            values.__send__ :#{method}, *args, &block
+          end
+        RUBY
+      end
 
       def [](value)
         values.find { |val| val.to_s == value.to_s }
@@ -45,8 +56,8 @@ class EnumX
       def ==(other)
         case other
         when Array then values == other
-        when Enum::ValueList then values == other.values
-        when Enum::Value then values == [ other ]
+        when EnumX::ValueList then values == other.values
+        when EnumX::Value then values == [ other ]
         else false
         end
       end

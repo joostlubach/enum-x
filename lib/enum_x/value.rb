@@ -8,14 +8,14 @@ class EnumX
 
       # Initializes a new enum value.
       #
-      # @param [Enum] enum  The owning enum.
+      # @param [EnumX] enum  The owning enum.
       # @param [Hash|#to_s] value
       #   The actual value. If a Hash is specified, it must contain a key 'value' or :value, and may
       #   contain values for any other format.
       #
       # == Examples
-      #   Enum::Value.new(enum, 'new')
-      #   Enum::Value.new(enum, {:value => 'new', :xml => '<new>'})
+      #   EnumX::Value.new(enum, 'new')
+      #   EnumX::Value.new(enum, {:value => 'new', :xml => '<new>'})
       def initialize(enum, value)
         raise ArgumentError, "enum required" unless enum
         @enum  = enum
@@ -48,7 +48,7 @@ class EnumX
     # Attributes
 
       # @!attribute [r] enum
-      # @return [Enum] The Enum defining this value.
+      # @return [EnumX] The EnumX defining this value.
       attr_reader :enum
 
       # @!attribute [r] value
@@ -69,8 +69,8 @@ class EnumX
     # Duplication
 
       # Creates a duplicate of this enum value.
-      # @param [Enum] enum  A new owner enum of the value.
-      # @return [Enum::Value]
+      # @param [EnumX] enum  A new owner enum of the value.
+      # @return [EnumX::Value]
       def dup(enum = self.enum)
         Value.new(enum, @formats.merge(:value => value))
       end
@@ -83,7 +83,8 @@ class EnumX
       alias :to_sym :symbol
 
       # Pass numeric conversion to the string value.
-      delegate :to_i, :to_f, :to => :value
+      def to_i; value.to_i end
+      def to_f; value.to_f end
 
       def respond_to?(method)
         if method =~ /^to_/ && !%w[ to_int to_a to_ary ].include?(method.to_s)
@@ -135,7 +136,7 @@ class EnumX
 
       def eql(other)
         return false if other.nil?
-        other.is_a?(Enum::Value) && other.enum == enum && other.value == value
+        other.is_a?(EnumX::Value) && other.enum == enum && other.value == value
       end
 
       def hash
@@ -146,7 +147,7 @@ class EnumX
         value
       end
 
-      # Enum values are simply stored as their string values.
+      # EnumX values are simply stored as their string values.
       def encode_with(coder)
         coder.tag = nil
         coder.scalar = value

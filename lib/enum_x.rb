@@ -3,9 +3,9 @@
 #
 # Enums are defined in configuration files which are loaded from load paths (see {.load_paths}).
 #
-# == Enum file format
+# == EnumX file format
 #
-# Enum files are YAML files defining enumerations in the following format:
+# EnumX files are YAML files defining enumerations in the following format:
 #
 #   <name>: [ <value>, <value, ... ]
 #
@@ -15,7 +15,7 @@
 #
 # == Extra formats
 #
-# Enum values are designed to be converted to various formats. By default, they simply support a name,
+# EnumX values are designed to be converted to various formats. By default, they simply support a name,
 # which is the value you specify in the YAML files. They also respond to any method starting with
 # 'to_', e.g. +to_string+, +to_json+, +to_legacy+. These return the name of the value, unless otherwise
 # specified explicitly when being defined.
@@ -26,13 +26,13 @@
 #
 # Now, the following will all be true:
 #
-#   Enum.statuses[:draft].value == 'draft'
-#   Enum.statuses[:draft].symbol == :draft
+#   EnumX.statuses[:draft].value == 'draft'
+#   EnumX.statuses[:draft].symbol == :draft
 #   # => #symbol always returns the value converted to a Symbol
-#   Enum.statuses[:draft].to_legacy == 'new'
-#   Enum.statuses[:sent].value == 'sent'
-#   Enum.statuses[:sent].symbol == :sent
-#   Enum.statuses[:sent].to_legacy == 'sent'
+#   EnumX.statuses[:draft].to_legacy == 'new'
+#   EnumX.statuses[:sent].value == 'sent'
+#   EnumX.statuses[:sent].symbol == :sent
+#   EnumX.statuses[:sent].to_legacy == 'sent'
 #   # => because no explicit value for the 'legacy' format was specified
 class EnumX
 
@@ -41,14 +41,35 @@ class EnumX
   autoload :ValueList, 'enum_x/value_list'
 
   ######
-  # Enum retrieval
+  # Registry class
+
+    # The enum registry. Provides indifferent access.
+    class Registry < Hash
+      def [](key)
+        super key.to_s
+      end
+    end
+
+  ######
+  # ValueHash class
+
+    # A hash for enum values. This is a regular Hash, except that it
+    # has completely indifferent access also integers are possible as keys.
+    class ValueHash < Hash
+      def [](key)
+        super key.to_s
+      end
+    end
+
+  ######
+  # EnumX retrieval
 
     class << self
 
-      # An array of Enum load paths.
+      # An array of EnumX load paths.
       #
       # @example Add some enum load paths
-      #   Enum.load_paths += Dir[ Rails.root + 'config/enums/**/*.yml' ]
+      #   EnumX.load_paths += Dir[ Rails.root + 'config/enums/**/*.yml' ]
       def load_paths=(paths)
         @load_paths = Array.wrap(paths)
       end
@@ -57,7 +78,7 @@ class EnumX
       end
 
       # Defines a new enum with the given values.
-      # @see Enum#initialize
+      # @see EnumX#initialize
       def define(name, values)
         registry[name] = new(name, values)
       end
@@ -87,7 +108,7 @@ class EnumX
       #
       # == Usage
       #
-      #   Enum.loader = proc do |file, file_type|
+      #   EnumX.loader = proc do |file, file_type|
       #     if file_type == :ruby
       #       load file
       #     else
@@ -101,12 +122,12 @@ class EnumX
         # @!attribute [r] registry
         # @return [Hash] All defined enums.
         def registry
-          @registry ||= HashWithIndifferentAccess.new
+          @registry ||= EnumX::Registry.new
         end
 
         # Tries to look for an enum by the given name.
         #
-        #   Enum.statuses == Enum[:statuses]
+        #   EnumX.statuses == EnumX[:statuses]
         def method_missing(method, *args, &block)
           if enum = self[method]
             enum
@@ -157,12 +178,12 @@ class EnumX
   ######
   # Initialization
 
-    # Initializes a new Enum instance.
+    # Initializes a new EnumX instance.
     #
     # @param [#to_s] name
-    #   The name of the enum. This is used to load translations. See {Enum::Value#to_s}.
+    #   The name of the enum. This is used to load translations. See {EnumX::Value#to_s}.
     # @param [Enumerable] values
-    #   The values for the enumeration. Each item is passed to {Enum::Value.new}.
+    #   The values for the enumeration. Each item is passed to {EnumX::Value.new}.
     def initialize(name, values)
       @name = name.to_s
 
@@ -175,25 +196,37 @@ class EnumX
   ######
   # Attributes
 
-    # Make the enum enumerable. That's the least it should do! Also pass on 'join' to the values.
-    include Enumerable
-    delegate *Array.instance_methods - Object.instance_methods, :to => :values
-    delegate :[], :to => :@values
-
     # @!attribute [r] name
     # @return [String] The name of the enum.
     attr_reader :name
 
     # @!attribute [r] values
-    # @return [Array<Enum::Value>] All allowed enum values.
+    # @return [Array<EnumX::Value>] All allowed enum values.
     def values
       @values.values
+    end
+
+    # Make the enum enumerable. That's the least it should do!
+    include Enumerable
+
+    # Create delegate methods for all of Enumerable's own methods.
+    Enumerable.instance_methods.each do |method|
+      class_eval <<-RUBY, __FILE__, __LINE__+1
+        def #{method}(*args, &block)
+          values.__send__ :#{method}, *args, &block
+        end
+      RUBY
+    end
+
+    # Obtains a value by its key.
+    def [](key)
+      @values[key]
     end
 
     # Obtains an array version of the enum.
     alias :to_ary :values
 
-    # Converts the enum to an array of {Enum::Value}s.
+    # Converts the enum to an array of {EnumX::Value}s.
     alias :to_a :values
 
   ######
@@ -201,17 +234,17 @@ class EnumX
 
     # Creates a duplicate of this enum.
     def dup
-      Enum.new(name, values)
+      EnumX.new(name, values)
     end
 
     # Creates a clone of this enumeration but without the given values.
     def without(*values)
-      Enum.new(name, self.values.reject{|v| values.include?(v)})
+      EnumX.new(name, self.values.reject{|v| values.include?(v)})
     end
 
     # Creates a duplicate of this enumeration but with only the given values.
     def only(*values)
-      Enum.new(name, self.values.select{|v| values.include?(v)})
+      EnumX.new(name, self.values.select{|v| values.include?(v)})
     end
 
     # Adds the given values to the enum
@@ -237,70 +270,7 @@ class EnumX
       return nil unless klass
 
       enum = klass.send(name) if klass.respond_to?(name) rescue nil
-      enum if enum.is_a?(Enum)
-    end
-
-  ######
-  # ValueHash class
-
-    # A hash for enum values. This is a regular HashWithIndifferentAccess, except that it
-    # *really* has indifferent access, also integers are possible as keys.
-    class ValueHash < HashWithIndifferentAccess
-      def [](key)
-        super key.to_s
-      end
-    end
-
-  ######
-  # Symbol & string extension
-
-    # Extend Symbol and String's == and === method to match equal enum values as well
-    Symbol.class_eval do
-      def triple_equals_with_enums(arg)
-        if arg.is_a?(Enum::Value)
-          triple_equals_without_enums arg.symbol
-        elsif arg.is_a?(Enum::ValueList)
-          arg.include?(self)
-        else
-          triple_equals_without_enums arg
-        end
-      end
-      def double_equals_with_enums(arg)
-        if arg.is_a?(Enum::Value)
-          double_equals_without_enums arg.symbol
-        else
-          double_equals_without_enums arg
-        end
-      end
-
-      alias :triple_equals_without_enums :===
-      alias :=== :triple_equals_with_enums
-      alias :double_equals_without_enums :==
-      alias :== :double_equals_with_enums
-    end
-
-    String.class_eval do
-      def triple_equals_with_enums(arg)
-        if arg.is_a?(Enum::Value)
-          triple_equals_without_enums arg.value
-        elsif arg.is_a?(Enum::ValueList)
-          arg.include?(self)
-        else
-          triple_equals_without_enums arg
-        end
-      end
-      def double_equals_with_enums(arg)
-        if arg.is_a?(Enum::Value)
-          double_equals_without_enums arg.value
-        else
-          double_equals_without_enums arg
-        end
-      end
-
-      alias :triple_equals_without_enums :===
-      alias :=== :triple_equals_with_enums
-      alias :double_equals_without_enums :==
-      alias :== :double_equals_with_enums
+      enum if enum.is_a?(EnumX)
     end
 
   private
@@ -313,4 +283,8 @@ class EnumX
               end
       @values[value.value] = value
     end
+
 end
+
+# Extend Symbol & String with enum awareness.
+require 'enum_x/monkey'

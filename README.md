@@ -1,4 +1,4 @@
-# Enum
+# EnumX
 
 Add an easy way to define a finite set of values for a certain field.
 
@@ -18,7 +18,7 @@ Or install it yourself as:
 
 ## Usage
 
-In the simplest form, you can use the `Enum` class by itself:
+In the simplest form, you can use the `EnumX` class by itself:
 
     enum = EnumX.new(:my_enum, %w[ one two three ])
     my_variable = enum[:one]

@@ -4,16 +4,16 @@ class EnumX
   #
   # == Usage
   #
-  # First, make sure your model class includes +Enum::DSL+:
+  # First, make sure your model class includes +EnumX::DSL+:
   #
-  #   include Enum::DSL
+  #   include EnumX::DSL
   #
   # Then, define any enum-like attribute using the {#enum} method. The best enum is always
   # inferred. The following are identical:
   #
   #   enum :status, :statuses
-  #   enum :status, Enum.statuses
-  #   enum :status, Enum[:statuses]
+  #   enum :status, EnumX.statuses
+  #   enum :status, EnumX[:statuses]
   #   enum :status
   #
   # The latter infers the 'statuses' enum by default. If no applicable enum was found, an
@@ -26,7 +26,10 @@ class EnumX
   #
   # @see ClassMethods#enum
   module DSL
-    extend ActiveSupport::Concern
+
+    def self.included(target)
+      target.extend ClassMethods
+    end
 
     ######
     # DSL methods
@@ -39,7 +42,7 @@ class EnumX
         # for non-ActiveRecord objects, make sure that the underlying attribute already exists.
         #
         # @param [Symbol] attribute  The attribute to add enum support to.
-        # @param [Enum|Enumerable|Symbol]
+        # @param [EnumX|Enumerable|Symbol]
         #   The enum to use. Specify a symbol to look up the enum from the defined enums, or use
         #   an array to create an ad-hoc enum for this attribute, with name "#{model}_#{attribute.pluralize}",
         #   e.g. 'post_statuses'.
@@ -55,9 +58,9 @@ class EnumX
         #   that define a part of the 'identity' of the receiving class, such as a status or a kind.
         #
         # @example The following creates an enum on an ActiveRecord object.
-        #   enum :kind                     # => Uses Enum.kinds
+        #   enum :kind                     # => Uses EnumX.kinds
         # @example The following creates an enum on an ActiveRecord object, but uses 'account_kinds' as the name.
-        #   enum :kind, :account_kinds     # => Uses Enum.account_kinds
+        #   enum :kind, :account_kinds     # => Uses EnumX.account_kinds
         # @example The following creates an enum on an ActiveRecord object, but uses a custom array.
         #   class Account < ActiveRecord::Base
         #     enum :kind, %w[ normal special ]  # => Uses an on the fly enum with name 'account_kinds'.
@@ -102,9 +105,9 @@ class EnumX
           end
 
           enum = case enum_opt = enum
-          when nil then Enum[enum_reader_name]
-          when Enum then enum
-          when Symbol, String then Enum[enum]
+          when nil then EnumX[enum_reader_name]
+          when EnumX then enum
+          when Symbol, String then EnumX[enum]
           when Enumerable
             name = if self.name
               "#{self.name.demodulize.underscore}_#{enum_reader_name}"
@@ -113,7 +116,7 @@ class EnumX
               "_#{enum_reader_name}"
             end
 
-            Enum.new(name, enum)
+            EnumX.new(name, enum)
           end
           raise ArgumentError, "cannot find enum #{(enum_opt || enum_reader_name).inspect}" unless enum
 
@@ -283,10 +286,10 @@ class EnumX
       def self.define_single_reader(target, attribute)
         define_reader target, attribute, <<-RUBY
           case value = %{read_value}
-          when Enum::Value then value
+          when EnumX::Value then value
           when nil then nil
           else
-            enum = Enum.find(self.class, :#{attribute.to_s.pluralize})
+            enum = EnumX.find(self.class, :#{attribute.to_s.pluralize})
             enum[value] || value
           end
         RUBY
@@ -295,10 +298,10 @@ class EnumX
       def self.define_single_writer(target, attribute)
         define_writer target, attribute, <<-RUBY
           value = case value
-          when Enum::Value then value
+          when EnumX::Value then value
           when nil then nil
           else
-            enum = Enum.find(self.class, :#{attribute.to_s.pluralize})
+            enum = EnumX.find(self.class, :#{attribute.to_s.pluralize})
             enum[value] || value
           end
           %{write_value}
@@ -310,24 +313,24 @@ class EnumX
 
       def self.define_multi_reader(target, attribute)
         define_reader target, attribute, <<-RUBY
-          enum = Enum.find(self.class, :#{attribute.to_s})
+          enum = EnumX.find(self.class, :#{attribute.to_s})
           case value = %{read_value}
           when nil then nil
-          when Enum::ValueList then value
-          when Enumerable then Enum::ValueList.new(enum, value)
-          else Enum::ValueList.new(enum, [value])
+          when EnumX::ValueList then value
+          when Enumerable then EnumX::ValueList.new(enum, value)
+          else EnumX::ValueList.new(enum, [value])
           end
         RUBY
       end
 
       def self.define_multi_writer(target, attribute)
         define_writer target, attribute, <<-RUBY
-          enum = Enum.find(self.class, :#{attribute.to_s})
+          enum = EnumX.find(self.class, :#{attribute.to_s})
           value = case value
           when nil then nil
-          when Enum::ValueList then value
-          when Enumerable then Enum::ValueList.new(enum, value)
-          else Enum::ValueList.new(enum, [value])
+          when EnumX::ValueList then value
+          when Enumerable then EnumX::ValueList.new(enum, value)
+          else EnumX::ValueList.new(enum, [value])
           end
           %{write_value}
         RUBY
@@ -364,12 +367,12 @@ class EnumX
         end
 
         def load(text)
-          Enum::ValueList.new(@enum, text.to_s.split('|').reject(&:blank?))
+          EnumX::ValueList.new(@enum, text.to_s.split('|').reject(&:blank?))
         end
 
         def dump(list)
           # This is the case for using the values from changes and the list is allready a string
-          list = load(list).values unless list.is_a?(Enum::ValueList)
+          list = load(list).values unless list.is_a?(EnumX::ValueList)
           "|#{list.map(&:to_s).join('|')}|"
         end
       end
