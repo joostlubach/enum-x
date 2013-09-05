@@ -214,7 +214,7 @@ class EnumX
     include Enumerable
 
     # Create delegate methods for all of Enumerable's own methods.
-    (Enumerable.instance_methods + [ :empty?, :present?, :blank? ]).each do |method|
+    [ :each, :empty?, :present?, :blank? ].each do |method|
       class_eval <<-RUBY, __FILE__, __LINE__+1
         def #{method}(*args, &block)
           values.__send__ :#{method}, *args, &block

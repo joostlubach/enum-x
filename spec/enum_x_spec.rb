@@ -75,6 +75,20 @@ describe EnumX do
       specify { expect(test_enum.to_ary).to eql(test_enum.values) }
     end
 
+    describe "as enumerable" do
+      specify { expect(EnumX).to include(Enumerable) }
+
+      it "should support #each" do
+        values = []
+        test_enum.each { |value| values << value }
+
+        expect(values).to have(3).items
+        expect(values[0]).to be(test_enum[:one])
+        expect(values[1]).to be(test_enum[:two])
+        expect(values[2]).to be(test_enum[:three])
+      end
+    end
+
     describe "value accessing" do
       it "should retrieve value :one correctly" do
         expect(test_enum[:one]).to be_a(EnumX::Value)
