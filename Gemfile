@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in flux-enum.gemspec
+# Specify your gem's dependencies in enum-x.gemspec
 gemspec
