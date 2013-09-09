@@ -110,6 +110,29 @@ describe EnumX do
       end
     end
 
+    describe "#value_with_format" do
+
+      it "should find a value by a specific format" do
+        expect(test_enum.value_with_format(:number, 'three')).to be_nil
+        expect(test_enum.value_with_format(:number, '3')).to be(test_enum[:three])
+      end
+
+      it "should retrieve any value with an undefined format to be found by its name, as their formats default to it" do
+        expect(test_enum.value_with_format(:whatever, 'two')).to be(test_enum[:two])
+      end
+
+      it "should offer a shortcut #value_with_<format>" do
+        expect(test_enum.value_with_number('3')).to be(test_enum[:three])
+        expect(test_enum.value_with_whatever('two')).to be(test_enum[:two])
+      end
+
+      it "should accept exactly one argument in the shortcut form" do
+        expect{ test_enum.value_with_number() }.to raise_error(ArgumentError, "`value_with_number' accepts one argument, 0 given")
+        expect{ test_enum.value_with_number(1, 2) }.to raise_error(ArgumentError, "`value_with_number' accepts one argument, 2 given")
+      end
+
+    end
+
     describe '#dup' do
       let(:duplicate) { test_enum.dup }
       specify { expect(duplicate.name).to eql('test_enum') }

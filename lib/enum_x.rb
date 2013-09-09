@@ -277,7 +277,48 @@ class EnumX
       enum if enum.is_a?(EnumX)
     end
 
+  ######
+  # Value by <format>
+
+    # Finds an enum value by the given format.
+    #
+    # == Example
+    #
+    # Given the following enum:
+    #
+    #   @enum = EnumX.define(:my_enum,
+    #     { :value => 'one', :number => '1' },
+    #     { :value => 'two', :number => '2' }
+    #   )
+    #
+    # You can now access the values like such:
+    #
+    #   @enum.value_with_format(:number, '1') # => @enum[:one]
+    #   @enum.value_with_format(:number, '2') # => @enum[:two]
+    #
+    # Note that any undefined format for a value is defaulted to its value. Therefore, the following
+    # is also valid:
+    #
+    #   @enum.value_with_format(:unknown, 'one') # => @enum[:one]
+    #
+    # You can also access values by a specific format using the shortcut 'value_with_<format>':
+    #
+    #   @enum.value_with_number('1')    # => @enum[:one]
+    #   @enum.value_with_unknown('one') # => @enum[:one]
+    def value_with_format(format, search)
+      values.find { |val| val.send(:"to_#{format}") == search }
+    end
+
   private
+
+    def method_missing(method, *args, &block)
+      if method =~ /^value_with_(.*)$/
+        raise ArgumentError, "`#{method}' accepts one argument, #{args.length} given" unless args.length == 1
+        value_with_format $1, args.first
+      else
+        super
+      end
+    end
 
     # Add a new value to the enum values list
     def add_value!(value)
