@@ -11,7 +11,7 @@ class EnumX
       # @param [EnumX] enum  The owning enum.
       # @param [Hash|#to_s] value
       #   The actual value. If a Hash is specified, it must contain a key 'value' or :value, and may
-      #   contain values for any other format.
+      #   contain values for any other format. A format named :format is not allowed.
       #
       # == Examples
       #   EnumX::Value.new(enum, 'new')
@@ -40,6 +40,7 @@ class EnumX
 
         # Process all other options as formats.
         hash.each do |key, value|
+          raise ArgumentError, "key :format is not allowed" if key.to_s == 'format'
           @formats[key.to_s] = value
         end
       end

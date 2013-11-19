@@ -20,7 +20,7 @@ describe EnumX do
       EnumX.define :test_enum, %w[ one two ]
 
       expect(EnumX[:test_enum]).to be_a(EnumX)
-      EnumX.test_enum.should be_a(EnumX)
+      expect(EnumX.test_enum).to be_a(EnumX)
     end
 
     it "should not load an enum when it is subsequently undefined" do
@@ -211,7 +211,10 @@ describe EnumX do
         expect{ EnumX::Value.new(nil, :test) }.to raise_error(ArgumentError)
       end
       it "should require a value if a hash is specified" do
-        expect{ EnumX::Value.new(test_enum, { :test => :a }) }.to raise_error(/key :value is required/)
+        expect{ EnumX::Value.new(test_enum, { :test => :a }) }.to raise_error(ArgumentError, "key :value is required when a hash value is specified")
+      end
+      it "should not allow a format called :format if a hash is specified" do
+        expect{ EnumX::Value.new(test_enum, { :value => :a, :format => :b }) }.to raise_error(ArgumentError, "key :format is not allowed")
       end
 
       specify { expect(simple_value.value).to eql('one') }
