@@ -333,3 +333,4 @@ end
 
 # Extend Symbol & String with enum awareness.
 require 'enum_x/monkey'
+require 'enum_x/railtie' if defined?(Rails)
