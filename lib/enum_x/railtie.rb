@@ -7,7 +7,7 @@ class EnumX
     config.enum_x.load_paths = []
 
     initializer 'enum.set_load_paths', :before => :finisher_hook do |app|
-      EnumX.load_paths = app.config.enum_x.load_paths
+      EnumX.load_paths.concat app.config.enum_x.load_paths
     end
 
   end
