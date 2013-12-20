@@ -224,6 +224,10 @@ describe EnumX do
       specify { expect(simple_value.to_number).to eql('one') }
       specify { expect(simple_value.to_xml).to eql('one') }
       specify { expect(simple_value.to_json).to eql('"one"') }
+
+      specify { expect(simple_value).not_to respond_to(:to_hash) }
+      specify { expect{simple_value.to_hash}.to raise_error(NoMethodError) }
+
       specify { expect(simple_value.hash).to eql('one'.hash) }
 
       specify { expect(complex_value.value).to eql('three') }
@@ -233,6 +237,7 @@ describe EnumX do
       specify { expect(complex_value.to_number).to eql('3') }
       specify { expect(complex_value.to_xml).to eql('three') }
       specify { expect(complex_value.to_json).to eql('"three"') }
+
       specify { expect(complex_value.hash).to eql('three'.hash) }
 
       describe 'duplication' do

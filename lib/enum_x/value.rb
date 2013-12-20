@@ -88,7 +88,7 @@ class EnumX
       def to_f; value.to_f end
 
       def respond_to?(method)
-        if method =~ /^to_/ && !%w[ to_int to_a to_ary ].include?(method.to_s)
+        if method =~ /^to_/ && !%w[ to_int to_a to_ary to_hash ].include?(method.to_s)
           true
         elsif method =~ /\?$/ && enum.values.include?($`)
           true
@@ -98,7 +98,7 @@ class EnumX
       end
 
       def method_missing(method, *args, &block)
-        if method =~ /^to_/ && !%w[ to_int to_a to_ary ].include?(method.to_s)
+        if method =~ /^to_/ && !%w[ to_int to_a to_ary to_hash ].include?(method.to_s)
           @formats[$'] || value
         elsif method =~ /\?$/
           value = $`
