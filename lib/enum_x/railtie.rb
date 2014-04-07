@@ -10,5 +10,9 @@ class EnumX
       EnumX.load_paths.concat app.config.enum_x.load_paths
     end
 
+    initializer 'enum.add_to_activerecord', :before => :finisher_hook do |app|
+      ActiveRecord::Base.send :include, EnumX::DSL if defined?(ActiveRecord)
+    end
+
   end
 end
